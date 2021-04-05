@@ -1,5 +1,8 @@
 package ditz.audio;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Created by IntelliJ IDEA.
  * User: stueken
@@ -8,7 +11,10 @@ package ditz.audio;
  */
 public class Generator implements Runnable {
 
-    float frequency = 440;
+    static final Logger LOGGER = Logger.getLogger(Generator.class.getName());
+    static final Level LEVEL = Level.FINE;
+
+    float frequency = 0;
     float gain = 1;
     float pan = 1;
 
@@ -16,7 +22,7 @@ public class Generator implements Runnable {
     boolean right = true;
     boolean pulse = false;
 
-    long step = 0;
+    long count = 0;
     float phase = 0;
 
     public void setFrequency(float frequency) {
@@ -43,29 +49,28 @@ public class Generator implements Runnable {
         pulse = enable;
     }
 
-    static final int NPI = AudioPlayer.SAMPLE_FREQUENCY/20;
-    float[] data = new float[2*NPI];
-
     AudioPlayer player = AudioPlayer.open();
 
     Thread thread = null;
     
     public Generator() {
-        for(int i=0; i<2*NPI; ++i) {
-            double value = Math.sin(i*Math.PI/NPI);
-            data[i] = (float)value;
-        }
     }
 
     public void start() {
+        LOGGER.log(LEVEL,"start");
+
         if(thread==null) {
-            thread = new Thread(this);
+            thread = new Thread(this, "Generator");
             thread.start();
         }
     }
 
     public void stop() {
+        LOGGER.log(LEVEL,"stop");
+
+        Thread thread = this.thread;
         if(thread!=null) {
+            this.thread = null;
             thread.interrupt();
             try {
                 thread.join();
@@ -80,33 +85,37 @@ public class Generator implements Runnable {
     }
 
     public void run() {
+        LOGGER.log(LEVEL,"run");
+
         try {
             player.start();
-            while (!Thread.currentThread().isInterrupted()) {
+            Thread current = Thread.currentThread();
+            while (this.thread==current && !current.isInterrupted()) {
                 play();
             }
         } catch (Throwable error) {
             handleError(error);
         } finally {
             player.stop();
+            LOGGER.log(LEVEL,"stopped");
         }
     }
 
     double sinus(double p) {
-        return Math.sin(p*Math.PI/NPI);
+        return Math.sin(p*2*Math.PI);
     }
 
     void play() {
 
         int sampleFrequency = player.sampleFrequency();
-        ++step;
+        ++count;
 
-        if(pulse && (step% sampleFrequency > sampleFrequency/2)) {
+        if(pulse && (count % sampleFrequency > sampleFrequency/2)) {
             player.write(0,0);
             return;
         }
 
-        double value = gain*sinus(phase * NPI);
+        double value = gain*sinus(phase);
         double left = value;
         double right = value;
 

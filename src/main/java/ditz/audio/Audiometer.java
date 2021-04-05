@@ -1,6 +1,8 @@
 package ditz.audio;
 
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.function.Consumer;
 
 /*
@@ -73,12 +75,19 @@ public class Audiometer extends JPanel {
     void open() {
         JFrame frame = new JFrame("Audiometer");
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter(){
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                generator.stop();
+            }
+        });
 
         frame.setContentPane(this);
         frame.pack();
         frame.setVisible(true);
-        
+
         generator.start();
     }
 
