@@ -28,7 +28,7 @@ public class Audiometer extends JPanel {
             }
         };
 
-        SliderPanel gainControl = new SliderPanel("gain: ", " dB", -45, 0, -10) {
+        SliderPanel gainControl = new SliderPanel("gain: ", " dB", -45, 0, -25) {
             public void setValue(int value) {
                 super.setValue(value);
                 generator.setGain(value);

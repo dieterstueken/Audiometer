@@ -6,16 +6,16 @@ version="1.0"
 dependencies {
 }
 
+idea.project {
+    jdkName = '11'
+    languageLevel = JavaVersion.VERSION_11
+    vcs = 'Git'
+}
+
 tasks.withType(JavaCompile) {
     // JVM command line parameters:     -Dorg.gradle.project.JavacPath=/data3/ORACLE_JDK/jdk1.8.0/bin/javac
 
     options.encoding = 'UTF-8'
     sourceCompatibility = JavaVersion.VERSION_11;
     targetCompatibility = JavaVersion.VERSION_11;
-
-    if (rootProject.ext.has("JdkPath")) {
-        options.fork = true
-        //options.compilerArgs.addAll(['-source', '10', '-target', '10'])
-        options.forkOptions.setExecutable(rootProject.JdkPath + "/bin/javac")
-    }
 }

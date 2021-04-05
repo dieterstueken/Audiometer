@@ -92,6 +92,10 @@ public class Generator implements Runnable {
         }
     }
 
+    double sinus(double p) {
+        return Math.sin(p*Math.PI/NPI);
+    }
+
     void play() {
 
         int sampleFrequency = player.sampleFrequency();
@@ -102,15 +106,14 @@ public class Generator implements Runnable {
             return;
         }
 
-        int i = Math.round(phase * NPI);
-        float value = gain*data[i];
-        float left = value;
-        float right = value;
+        double value = gain*sinus(phase * NPI);
+        double left = value;
+        double right = value;
 
         if(pan>1)
-            right /= pan;
+            left /= pan;
         else
-            left *= pan;
+            right *= pan;
 
         player.write(this.left?left:0, this.right?right:0);
 
