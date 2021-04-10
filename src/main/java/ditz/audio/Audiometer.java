@@ -1,6 +1,7 @@
 package ditz.audio;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.function.Consumer;
@@ -23,14 +24,16 @@ public class Audiometer extends JPanel {
 
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-        
+
+        add(audiogramms());
+
         generator = new Generator() {
             public void handleError(Throwable error) {
                 Audiometer.this.handleError(error);
             }
         };
 
-        SliderPanel gainControl = new SliderPanel("gain: ", " dB", -45, 0, -25) {
+        SliderPanel gainControl = new SliderPanel("gain: ", " dB", -120, 0, -25) {
             public void setValue(int value) {
                 super.setValue(value);
                 generator.setGain(value);
@@ -44,13 +47,15 @@ public class Audiometer extends JPanel {
             }
         };
 
-        SliderPanel freqControl = new SliderPanel("frequency: ", " Hz", -40, 60, 0) {
+        SliderPanel freqControl = new SliderPanel("frequency: ", " Hz", -36, 48, 0) {
             public void setValue(int value) {
-                int frequency = (int) (440 * Math.pow(2, value / 12.0));
+                int frequency = (int) (1000 * Math.pow(2, value / 12.0));
                 super.setValue(frequency);
                 generator.setFrequency(frequency);
             }
         };
+
+
 
         add(gainControl);
         add(balanceControl);
@@ -62,6 +67,20 @@ public class Audiometer extends JPanel {
         buttons.add(checkbox("right", generator::enableRight, true));
 
         add(buttons);
+    }
+
+    private Component audiogramms() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        panel.add(audiogramm(), BorderLayout.LINE_START);
+        panel.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
+        panel.add(audiogramm(), BorderLayout.LINE_END);
+
+        return panel;
+    }
+
+    private Component audiogramm() {
+        return new Audiogramm(400, 400);
     }
 
     JComponent checkbox(String name, Consumer<Boolean> enable, boolean enabled) {

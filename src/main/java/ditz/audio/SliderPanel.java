@@ -30,8 +30,8 @@ abstract class SliderPanel extends JPanel
         add(label, c);
 
         JSlider slider = new  JSlider(JSlider.HORIZONTAL, min, max, value);
-        slider.setMajorTickSpacing(10);
-        slider.setMinorTickSpacing(1);
+        slider.setMajorTickSpacing(20);
+        slider.setMinorTickSpacing(5);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);
         slider.setBorder(BorderFactory.createEmptyBorder(0,0,10,0));
