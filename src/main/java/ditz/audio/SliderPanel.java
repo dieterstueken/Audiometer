@@ -6,8 +6,9 @@ import java.awt.*;
 
 abstract class SliderPanel extends JPanel
 {
-
     final JLabel vLabel;
+
+    final BoundedRangeModel model;
 
     SliderPanel(String title, String unit, int min, int max, int value) {
         super(new GridBagLayout());
@@ -29,7 +30,7 @@ abstract class SliderPanel extends JPanel
         c.gridx = 2;
         add(label, c);
 
-        JSlider slider = new  JSlider(JSlider.HORIZONTAL, min, max, value);
+        JSlider slider = new JSlider(JSlider.HORIZONTAL, min, max, value);
         slider.setMajorTickSpacing(20);
         slider.setMinorTickSpacing(5);
         slider.setPaintTicks(true);
@@ -41,6 +42,8 @@ abstract class SliderPanel extends JPanel
         c.gridy = 1;
         c.gridwidth = 3;
         add(slider, c);
+
+        this.model = slider.getModel();
 
         setValue(slider.getValue());
     }

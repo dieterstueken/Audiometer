@@ -25,7 +25,7 @@ public class Audiometer extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
-        add(audiogramms());
+
 
         generator = new Generator() {
             public void handleError(Throwable error) {
@@ -55,7 +55,7 @@ public class Audiometer extends JPanel {
             }
         };
 
-
+        add(audiogramms(freqControl.model));
 
         add(gainControl);
         add(balanceControl);
@@ -69,18 +69,19 @@ public class Audiometer extends JPanel {
         add(buttons);
     }
 
-    private Component audiogramms() {
+
+    private Component audiogramms(BoundedRangeModel freqModel) {
         JPanel panel = new JPanel(new BorderLayout());
 
-        panel.add(audiogramm(), BorderLayout.LINE_START);
+        panel.add(audiogramm(freqModel), BorderLayout.LINE_START);
         panel.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
-        panel.add(audiogramm(), BorderLayout.LINE_END);
+        panel.add(audiogramm(freqModel), BorderLayout.LINE_END);
 
         return panel;
     }
 
-    private Component audiogramm() {
-        return new Audiogramm(400, 400);
+    private Component audiogramm(BoundedRangeModel freqModel) {
+        return new Audiogramm(freqModel);
     }
 
     JComponent checkbox(String name, Consumer<Boolean> enable, boolean enabled) {
