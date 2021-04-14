@@ -25,65 +25,34 @@ public class Audiometer extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
-
-
         generator = new Generator() {
             public void handleError(Throwable error) {
                 Audiometer.this.handleError(error);
             }
         };
 
-        SliderPanel gainControl = new SliderPanel("gain: ", " dB", -120, 0, -25) {
-            public void setValue(int value) {
-                super.setValue(value);
-                generator.setGain(value);
-            }
-        };
+        BoundedRangeModel freqModel = new DefaultBoundedRangeModel(0, 0, -36, 48);
+        add(audiogramms(freqModel));
 
-        SliderPanel balanceControl = new SliderPanel("balance: ", " dB", -40, 40, 0) {
-            public void setValue(int value) {
-                super.setValue(value);
-                generator.setBalance(value);
-            }
-        };
+        freqModel.addChangeListener(ev->setFrequency(freqModel.getValue()));
+    }
 
-        SliderPanel freqControl = new SliderPanel("frequency: ", " Hz", -36, 48, 0) {
-            public void setValue(int value) {
-                int frequency = (int) (1000 * Math.pow(2, value / 12.0));
-                super.setValue(frequency);
-                generator.setFrequency(frequency);
-            }
-        };
-
-        add(audiogramms(freqControl.model));
-
-        add(gainControl);
-        add(balanceControl);
-        add(freqControl);
-
-        JPanel buttons = new JPanel();
-        buttons.add(checkbox("left", generator::enableLeft, true));
-        buttons.add(checkbox("pulse", generator::enablePulse, false));
-        buttons.add(checkbox("right", generator::enableRight, true));
-
-        add(buttons);
+    private void setFrequency(int value) {
+        int frequency = (int) (1000 * Math.pow(2, value / 12.0));
+        generator.setFrequency(frequency);
     }
 
 
     private Component audiogramms(BoundedRangeModel freqModel) {
         JPanel panel = new JPanel(new BorderLayout());
 
-        panel.add(audiogramm(freqModel), BorderLayout.LINE_START);
+        panel.add(new Audiogramm(freqModel, "left", generator::enableLeft), BorderLayout.LINE_START);
         panel.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
-        panel.add(audiogramm(freqModel), BorderLayout.LINE_END);
+        panel.add(new Audiogramm(freqModel, "right", generator::enableRight), BorderLayout.LINE_END);
 
         return panel;
     }
-
-    private Component audiogramm(BoundedRangeModel freqModel) {
-        return new Audiogramm(freqModel);
-    }
-
+    
     JComponent checkbox(String name, Consumer<Boolean> enable, boolean enabled) {
         JCheckBox checkbox = new JCheckBox(name);
         checkbox.addItemListener(ev -> enable.accept(checkbox.isSelected()));

@@ -2,8 +2,8 @@ package ditz.audio;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.util.function.Consumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -24,6 +24,38 @@ class Audiogramm extends JPanel {
 
     static final Insets IN = new Insets(30, 30, 70, 35);
 
+    final JCheckBox checkbox;
+
+    final JLabel lossLabel = new JLabel();
+    final JSlider lossSlider;
+
+    final JLabel freqLabel = new JLabel();
+    final BoundedRangeModel freqModel;
+
+    final int[] audiogramm = new int[7*12];
+
+    private void setLoss(int loss) {
+        String text = String.format("%d dB", -loss);
+        lossLabel.setText(text);
+
+        int i = getFreqIndex();
+        audiogramm[i] = loss;
+
+        repaint();
+    }
+
+    private void setFreq(int value) {
+        double freq = 1000 * Math.pow(2, value / 12.0);
+        String text = String.format("%5.0f Hz", freq);
+        freqLabel.setText(text);
+
+        repaint();
+    }
+
+    private int getFreqIndex() {
+        return freqModel.getValue() + 36;
+    }
+
     int pix(float freq) {
         double lf = Math.log(freq/1000)/Math.log(2) + 3;
         double x = IN.left + width*lf/NX;
@@ -35,7 +67,7 @@ class Audiogramm extends JPanel {
         return (int) y;
     }
 
-    Audiogramm(BoundedRangeModel freqModel) {
+    Audiogramm(BoundedRangeModel freqModel, String name, Consumer<Boolean> enable) {
         super(null);
 
         setPreferredSize(new Dimension(width+IN.left+IN.right, height+IN.top+IN.bottom));
@@ -43,8 +75,15 @@ class Audiogramm extends JPanel {
         Border border = BorderFactory.createLineBorder(Color.BLACK);
         setBorder(border);
 
-        freqSlider(freqModel);
-        lossSlider();
+        this.checkbox = new JCheckBox(name);
+        checkbox.setBounds(IN.left, IN.top+height+30, 60, 15);
+        add(checkbox);
+
+        this.freqModel = freqModel;
+
+        this.lossSlider = lossSlider();
+
+        freqSlider();
 
         for (int freq : FREQS) {
             String text = freq<1000 ? String.format("%d", freq) : String.format("%dk", freq/1000);
@@ -66,47 +105,35 @@ class Audiogramm extends JPanel {
         }
     }
 
-    private JSlider freqSlider(BoundedRangeModel freqModel) {
+
+    private JSlider freqSlider() {
+
+        freqLabel.setHorizontalAlignment(JLabel.RIGHT);
+        freqLabel.setBounds(IN.left+65, IN.top+height+30, 55, 15);
+        add(freqLabel);
+
         JSlider slider = new JSlider(freqModel);
         slider.setBounds(IN.left-7, IN.top+height+8, width+16, 20);
         add(slider);
 
-        JLabel label = new JLabel();
-        //label.setPreferredSize(new Dimension(160, 10));
-        label.setHorizontalAlignment(JLabel.RIGHT);
-        label.setBounds(IN.left, IN.top+height+30, 55, 15);
-        
-        ChangeListener cl = ev -> {
-            int value = freqModel.getValue();
-            double freq = 1000 * Math.pow(2, value / 12.0);
-            String text = String.format("%5.0f Hz", freq);
-            label.setText(text);
-        };
-        freqModel.addChangeListener(cl);
-        cl.stateChanged(null);
-        add(label);
+        freqModel.addChangeListener(ev->setFreq(slider.getValue()));
+        setFreq(slider.getValue());
 
         return slider;
     }
 
     private JSlider lossSlider() {
-        JSlider slider = new JSlider(JSlider.VERTICAL, -130, 10, -10);
+
+        lossLabel.setHorizontalAlignment(JLabel.RIGHT);
+        lossLabel.setBounds(IN.left+150, IN.top+height+30, 55, 15);
+        add(lossLabel);
+
+        JSlider slider = new JSlider(JSlider.VERTICAL, -130, 10, 0);
         slider.setBounds(IN.left+width+10, IN.top-7, 20, height+16);
+
+        slider.addChangeListener(ev->setLoss(slider.getValue()));
+
         add(slider);
-
-        JLabel label = new JLabel();
-        //label.setPreferredSize(new Dimension(160, 10));
-        label.setHorizontalAlignment(JLabel.RIGHT);
-        label.setBounds(IN.left+100, IN.top+height+30, 55, 15);
-
-        ChangeListener cl = ev -> {
-            int value = slider.getValue();
-            String text = String.format("%d dB", -value);
-            label.setText(text);
-        };
-        slider.addChangeListener(cl);
-        cl.stateChanged(null);
-        add(label);
 
         return slider;
     }
@@ -133,6 +160,25 @@ class Audiogramm extends JPanel {
             int db = 10*i-10;
             iy = piy(db);
             gr.drawLine(ix, iy, jx, iy);
+        }
+
+        jx = getFreqIndex();
+
+        for(int i=0; i<12*NX; ++i) {
+            int db = audiogramm[i];
+
+            ix = IN.left + 4*i;
+            iy = IN.top + 3*(10-db);
+
+            if(i==jx) {
+                gr.setColor(Color.RED);
+                gr.drawLine(ix, piy(130), ix, piy(-10));
+            } else {
+                gr.setColor(Color.BLACK);
+
+            }
+
+            gr.fillArc(ix-2, iy-2, 4, 4, 0, 360);
         }
     }
 }

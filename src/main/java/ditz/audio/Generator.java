@@ -15,12 +15,12 @@ public class Generator implements Runnable {
     static final Level LEVEL = Level.FINE;
 
     float frequency = 0;
-    float gain = 1;
-    float pan = 1;
+
+    float gainLeft = 1;
+    float gainRight = 1;
 
     boolean left = true;
     boolean right = true;
-    boolean pulse = false;
 
     long count = 0;
     float phase = 0;
@@ -29,24 +29,20 @@ public class Generator implements Runnable {
         this.frequency = frequency;
     }
 
-    public void setGain(float dB) {
-        this.gain = (float)Math.pow(10, dB/20);
-    }
-
-    public void setBalance(float dB) {
-        this.pan = (float)Math.pow(10, dB/20);
+    public void setLeftGain(float dB) {
+        this.gainLeft = (float)Math.pow(10, dB/20);
     }
 
     public void enableLeft(boolean enable) {
         left = enable;
     }
 
-    public void enableRight(boolean enable) {
-        right = enable;
+    public void setRightGain(float dB) {
+        this.gainRight = (float)Math.pow(10, dB/20);
     }
 
-    public void enablePulse(boolean enable) {
-        pulse = enable;
+    public void enableRight(boolean enable) {
+        right = enable;
     }
 
     AudioPlayer player = AudioPlayer.open();
@@ -110,21 +106,11 @@ public class Generator implements Runnable {
         int sampleFrequency = player.sampleFrequency();
         ++count;
 
-        if(pulse && (count % sampleFrequency > sampleFrequency/2)) {
-            player.write(0,0);
-            return;
-        }
+        double value = sinus(phase);
+        double leftValue = this.left ? value * gainLeft : 0;
+        double rightValue = this.right? value * gainRight : 0;
 
-        double value = gain*sinus(phase);
-        double left = value;
-        double right = value;
-
-        if(pan>1)
-            left /= pan;
-        else
-            right *= pan;
-
-        player.write(this.left?left:0, this.right?right:0);
+        player.write(leftValue, rightValue);
 
         float next = phase + frequency / sampleFrequency;
         next -= Math.floor(next);
