@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -67,7 +68,8 @@ class Audiogramm extends JPanel {
         return (int) y;
     }
 
-    Audiogramm(BoundedRangeModel freqModel, String name, Consumer<Boolean> enable) {
+    Audiogramm(BoundedRangeModel freqModel, String name,
+               Consumer<Boolean> enable, IntConsumer loss) {
         super(null);
 
         setPreferredSize(new Dimension(width+IN.left+IN.right, height+IN.top+IN.bottom));
@@ -77,11 +79,14 @@ class Audiogramm extends JPanel {
 
         this.checkbox = new JCheckBox(name);
         checkbox.setBounds(IN.left, IN.top+height+30, 60, 15);
+        checkbox.addActionListener(ev -> enable.accept(checkbox.isSelected()));
+        checkbox.setSelected(true);
         add(checkbox);
 
         this.freqModel = freqModel;
 
         this.lossSlider = lossSlider();
+        lossSlider.addChangeListener(ev->loss.accept(lossSlider.getValue()));
 
         freqSlider();
 

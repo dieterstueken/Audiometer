@@ -32,9 +32,10 @@ public class Audiometer extends JPanel {
         };
 
         BoundedRangeModel freqModel = new DefaultBoundedRangeModel(0, 0, -36, 48);
-        add(audiogramms(freqModel));
-
         freqModel.addChangeListener(ev->setFrequency(freqModel.getValue()));
+        setFrequency(freqModel.getValue());
+        
+        add(audiogramms(freqModel));
     }
 
     private void setFrequency(int value) {
@@ -46,9 +47,13 @@ public class Audiometer extends JPanel {
     private Component audiogramms(BoundedRangeModel freqModel) {
         JPanel panel = new JPanel(new BorderLayout());
 
-        panel.add(new Audiogramm(freqModel, "left", generator::enableLeft), BorderLayout.LINE_START);
+        panel.add(new Audiogramm(freqModel, "left",
+                generator::enableLeft, generator::setLeftGain), BorderLayout.LINE_START);
+
         panel.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
-        panel.add(new Audiogramm(freqModel, "right", generator::enableRight), BorderLayout.LINE_END);
+
+        panel.add(new Audiogramm(freqModel, "right",
+                generator::enableRight, generator::setRightGain), BorderLayout.LINE_END);
 
         return panel;
     }
