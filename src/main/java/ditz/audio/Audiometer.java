@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.function.Consumer;
 
 /*
  * file           :  $RCSfile: $
@@ -25,49 +24,66 @@ public class Audiometer extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
-        generator = new Generator() {
+        generator = new Generator(1024, false) {
             public void handleError(Throwable error) {
                 Audiometer.this.handleError(error);
             }
         };
 
-        BoundedRangeModel freqModel = new DefaultBoundedRangeModel(0, 0, -36, 48);
-        freqModel.addChangeListener(ev->setFrequency(freqModel.getValue()));
-        setFrequency(freqModel.getValue());
-        
+        FrequencyModel freqModel = new FrequencyModel(generator);
+
         add(audiogramms(freqModel));
     }
 
-    private void setFrequency(int value) {
-        int frequency = (int) (1000 * Math.pow(2, value / 12.0));
-        generator.setFrequency(frequency);
-    }
-
-
-    private Component audiogramms(BoundedRangeModel freqModel) {
+    private Component audiogramms(FrequencyModel freqModel) {
         JPanel panel = new JPanel(new BorderLayout());
 
-        panel.add(new Audiogramm(freqModel, "left",
-                generator::enableLeft, generator::setLeftGain), BorderLayout.LINE_START);
+        panel.add(audiogramm(freqModel, generator.left), BorderLayout.LINE_START);
 
         panel.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
 
-        panel.add(new Audiogramm(freqModel, "right",
-                generator::enableRight, generator::setRightGain), BorderLayout.LINE_END);
+        panel.add(audiogramm(freqModel, generator.right), BorderLayout.LINE_END);
 
         return panel;
     }
-    
-    JComponent checkbox(String name, Consumer<Boolean> enable, boolean enabled) {
-        JCheckBox checkbox = new JCheckBox(name);
-        checkbox.addItemListener(ev -> enable.accept(checkbox.isSelected()));
-        checkbox.setSelected(enabled);
-        enable.accept(enabled);
-        return checkbox;
+
+    private JMenuItem loadItem() {
+        JMenuItem item = new JMenuItem("Load");
+        return item;
+    }
+
+    private JMenuItem saveItem() {
+        JMenuItem item = new JMenuItem("Save");
+        return item;
+    }
+
+    private JMenuItem exitItem(Window window) {
+        JMenuItem item = new JMenuItem("Exit");
+        item.addActionListener(ev-> {
+            window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
+        });
+        return item;
+    }
+
+    private Audiogramm audiogramm(FrequencyModel freqModel, AudioChannel channel) {
+        AudioModel model = new AudioModel(freqModel, channel);
+        return new Audiogramm(model);
     }
 
     void open() {
         JFrame frame = new JFrame("Audiometer");
+
+        JMenu menu = new JMenu("File");
+
+        menu.add(loadItem());
+        menu.add(saveItem());
+        menu.add(exitItem(frame));
+
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(menu);
+
+        frame.setJMenuBar(menuBar);
+        frame.setContentPane(this);
 
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter(){
@@ -78,7 +94,6 @@ public class Audiometer extends JPanel {
             }
         });
 
-        frame.setContentPane(this);
         frame.pack();
         frame.setVisible(true);
 

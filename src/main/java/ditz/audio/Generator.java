@@ -14,13 +14,62 @@ public class Generator implements Runnable {
     static final Logger LOGGER = Logger.getLogger(Generator.class.getName());
     static final Level LEVEL = Level.FINE;
 
+    static double sinus(double p) {
+        return Math.sin(p*2*Math.PI);
+    }
+
+    public class Channel implements AudioChannel {
+
+        final String name;
+
+        boolean enabled = false;
+        float gain = 1;
+
+        public Channel(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public void enable(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @Override
+        public float getFrequency() {
+            return Generator.this.frequency;
+        }
+
+        public void setFrequency(float frequency) {
+            Generator.this.setFrequency(frequency);
+        }
+
+        @Override
+        public float getGain() {
+            return gain;
+        }
+
+        @Override
+        public void setGain(float gain) {
+            this.gain = gain;
+        }
+
+        double value() {
+            return enabled ? gain * sinus(phase) : 0;
+        }
+    }
+
     float frequency = 0;
 
-    float gainLeft = 1;
-    float gainRight = 1;
-
-    boolean left = true;
-    boolean right = true;
+    final Channel left= new Channel("left"), right= new Channel("right");
 
     long count = 0;
     float phase = 0;
@@ -29,27 +78,13 @@ public class Generator implements Runnable {
         this.frequency = frequency;
     }
 
-    public void setLeftGain(float dB) {
-        this.gainLeft = (float)Math.pow(10, dB/20);
-    }
-
-    public void enableLeft(boolean enable) {
-        left = enable;
-    }
-
-    public void setRightGain(float dB) {
-        this.gainRight = (float)Math.pow(10, dB/20);
-    }
-
-    public void enableRight(boolean enable) {
-        right = enable;
-    }
-
     AudioPlayer player = AudioPlayer.open();
 
     Thread thread = null;
     
-    public Generator() {
+    public Generator(float frequency, boolean enabled) {
+        this.frequency = frequency;
+        left.enabled = right.enabled = enabled;
     }
 
     public void start() {
@@ -97,23 +132,14 @@ public class Generator implements Runnable {
         }
     }
 
-    double sinus(double p) {
-        return Math.sin(p*2*Math.PI);
-    }
-
     void play() {
 
         int sampleFrequency = player.sampleFrequency();
-        ++count;
-
-        double value = sinus(phase);
-        double leftValue = this.left ? value * gainLeft : 0;
-        double rightValue = this.right? value * gainRight : 0;
-
-        player.write(leftValue, rightValue);
+        player.write(left.value(), right.value());
 
         float next = phase + frequency / sampleFrequency;
         next -= Math.floor(next);
         phase = next;
+        ++count;
     }
 }
