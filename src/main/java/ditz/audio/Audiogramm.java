@@ -44,12 +44,6 @@ class Audiogramm extends JPanel {
         return String.format("%5d Hz", (int) model.getFreq());
     }
 
-    public void audioDataChanged() {
-        lossLabel.setText(getLossLabel());
-        lossSlider.setValue(-model.getLoss());
-        repaint();
-    }
-
     private void updateLoss(ChangeEvent ev) {
         lossLabel.setText(getLossLabel());
         model.setLoss(-lossSlider.getValue());
@@ -144,8 +138,15 @@ class Audiogramm extends JPanel {
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    protected void paintChildren(Graphics g) {
+        lossLabel.setText(getLossLabel());
+        lossSlider.setValue(-model.getLoss());
+        super.paintChildren(g);
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
 
         Graphics2D gr = (Graphics2D) g;
 
