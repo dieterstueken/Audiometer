@@ -2,8 +2,8 @@ package ditz.audio;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,6 +32,7 @@ class Audiogramm extends JPanel {
 
     final JCheckBox checkbox;
     final JSlider lossSlider;
+    final JSlider freqSlider;
 
     final JLabel lossLabel;
     final JLabel freqLabel;
@@ -40,19 +41,16 @@ class Audiogramm extends JPanel {
         return String.format("%d dB", model.getLoss());
     }
 
+    void updateLossLabel(Object dummy) {
+        lossLabel.setText(getLossLabel());
+    }
+
     String getFreqLabel() {
         return String.format("%5d Hz", (int) model.getFreq());
     }
 
-    private void updateLoss(ChangeEvent ev) {
-        lossLabel.setText(getLossLabel());
-        model.setLoss(-lossSlider.getValue());
-        repaint();
-    }
-
-    private void updateFreq(ChangeEvent ev) {
+    void updateFreqLabel(Object dummy) {
         freqLabel.setText(getFreqLabel());
-        repaint();
     }
 
     int chx(int channel) {
@@ -94,29 +92,33 @@ class Audiogramm extends JPanel {
 
         checkbox = new JCheckBox(model.getName(), null, false);
         checkbox.setBounds(IN.left, IN.top+height+30, 60, 15);
-        checkbox.addActionListener(ev -> model.enable(checkbox.isSelected()));
+        checkbox.addItemListener(model::enable);
         add(checkbox);
 
-        lossSlider = new JSlider(JSlider.VERTICAL, -130, 10, -model.getLoss());
+        lossSlider = new JSlider(model);
+        lossSlider.setOrientation(JSlider.VERTICAL);
         lossSlider.setBounds(IN.left+width+10, IN.top-7, 20, height+16);
         add(lossSlider);
 
         lossLabel = new JLabel(getLossLabel());
         lossLabel.setHorizontalAlignment(JLabel.RIGHT);
         lossLabel.setBounds(IN.left+150, IN.top+height+30, 55, 15);
+        model.addChangeListener(this::updateLossLabel);
         add(lossLabel);
 
-        JSlider freqSlider = new JSlider(model.getFreqModel());
+        freqSlider = new JSlider(model.getFreqModel());
         freqSlider.setBounds(IN.left-7, IN.top+height+8, width+16, 20);
         add(freqSlider);
 
         freqLabel = new JLabel(getFreqLabel());
         freqLabel.setHorizontalAlignment(JLabel.RIGHT);
         freqLabel.setBounds(IN.left+65, IN.top+height+30, 55, 15);
+        model.freqModel.addChangeListener(this::updateFreqLabel);
         add(freqLabel);
 
-        model.freqModel.addChangeListener(this::updateFreq);
-        lossSlider.addChangeListener(this::updateLoss);
+        model.gainModel.addChangeListener(ev->repaint());
+        model.freqModel.addChangeListener(ev->repaint());
+        model.addChangeListener(ev->repaint());
 
         for (int freq : FREQS) {
             String text = freq<1000 ? String.format("%d", freq) : String.format("%dk", freq/1000);
@@ -135,12 +137,23 @@ class Audiogramm extends JPanel {
             int iy = piy(loss)-6;
             label.setBounds(ix, iy, 24, 10);
         }
+
+        setupKeyBindings();
+    }
+
+    void setupKeyBindings() {
+        setupKeyBindings("UP", ev->model.incrementLoss(-1));
+        setupKeyBindings("DOWN", ev->model.incrementLoss(+1));
+        setupKeyBindings("LEFT", ev->model.incrementFreq(-1));
+        setupKeyBindings("RIGHT", ev->model.incrementFreq(+1));
+    }
+
+    void setupKeyBindings(String command, ActionListener listener) {
+        checkbox.registerKeyboardAction(listener, command, KeyStroke.getKeyStroke(command), JComponent.WHEN_FOCUSED);
     }
 
     @Override
     protected void paintChildren(Graphics g) {
-        lossLabel.setText(getLossLabel());
-        lossSlider.setValue(-model.getLoss());
         super.paintChildren(g);
     }
 
@@ -185,5 +198,12 @@ class Audiogramm extends JPanel {
 
             gr.fillArc(ix-2, iy-2, 4, 4, 0, 360);
         }
+
+        ix = pix(125);
+        jx = pix(16000);
+
+        gr.setColor(Color.RED);
+        iy = piy(model.getLimit());
+        gr.drawLine(ix, iy, jx, iy);
     }
 }

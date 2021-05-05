@@ -44,22 +44,18 @@ public class Generator implements Runnable {
         }
 
         @Override
-        public float getFrequency() {
-            return Generator.this.frequency;
-        }
-
-        public void setFrequency(float frequency) {
-            Generator.this.setFrequency(frequency);
-        }
-
-        @Override
         public float getGain() {
             return gain;
         }
 
         @Override
         public void setGain(float gain) {
-            this.gain = gain;
+            if(gain<1)
+                this.gain = gain;
+            else {
+                LOGGER.log(LEVEL,"truncated: " + gain);
+                this.gain=1;
+            }
         }
 
         double value() {

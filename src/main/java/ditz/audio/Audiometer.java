@@ -21,6 +21,8 @@ public class Audiometer extends JPanel {
 
     final Generator generator;
 
+    final GainModel gainModel = new GainModel();
+
     final AudioModel left;
     final AudioModel right;
 
@@ -40,22 +42,34 @@ public class Audiometer extends JPanel {
         };
 
         FrequencyModel freqModel = new FrequencyModel(generator);
-        left = new AudioModel(freqModel, generator.left);
-        right = new AudioModel(freqModel, generator.right);
+        left = new AudioModel(freqModel, gainModel, generator.left);
+        right = new AudioModel(freqModel, gainModel, generator.right);
 
-        add(audiograms=audiogramms());
-    }
+        audiograms = new JPanel(new BorderLayout());
+        audiograms.add(new Audiogramm(left), BorderLayout.LINE_START);
+        audiograms.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
+        audiograms.add(new Audiogramm(right), BorderLayout.LINE_END);
 
-    private JPanel audiogramms() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel gainPanel = new JPanel();
 
-        panel.add(new Audiogramm(left), BorderLayout.LINE_START);
+        JCheckBox coupled = new JCheckBox("coupled", null, gainModel.coupled);
+        coupled.addItemListener(gainModel::couple);
 
-        panel.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
+        JLabel gainLabel = new JLabel(gainModel.getLabel(), SwingConstants.RIGHT);
+        gainLabel.setPreferredSize(gainLabel.getPreferredSize());
 
-        panel.add(new Audiogramm(right), BorderLayout.LINE_END);
+        gainLabel.setMinimumSize(new Dimension(100, 3));
+        gainModel.addChangeListener(ev -> gainLabel.setText(gainModel.getLabel()));
 
-        return panel;
+        JSlider gainSlider = new JSlider(gainModel);
+        
+        gainPanel.add(coupled);
+        gainPanel.add(gainSlider);
+        gainPanel.add(gainLabel);
+
+        audiograms.add(gainPanel, BorderLayout.SOUTH);
+
+        add(audiograms);
     }
 
     private JMenuItem loadItem() {
@@ -127,7 +141,7 @@ public class Audiometer extends JPanel {
 
     private void load(File file) {
         try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-
+            gainModel.bias = 0;
             for(int i=0; i<FrequencyModel.NUM_CHANNELS; ++i) {
                 String line = reader.readLine();
                 if(line==null)

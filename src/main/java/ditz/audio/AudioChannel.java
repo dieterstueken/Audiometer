@@ -14,10 +14,6 @@ public interface AudioChannel {
 
     void enable(boolean enabled);
 
-    float getFrequency();
-
-    void setFrequency(float frequency);
-
     float getGain();
 
     void setGain(float gain);
