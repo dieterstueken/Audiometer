@@ -16,8 +16,8 @@ public class FrequencyModel extends DefaultBoundedRangeModel {
     public static final int KHZ_CHANNEL = 3*CHANNELS_PER_KHZ;
     public static final int NUM_CHANNELS = 7*CHANNELS_PER_KHZ;
 
-    public static float toFreq(int channel) {
-        return FrequencyModel.KHZ * (float) Math.pow(2, (float)(channel- FrequencyModel.KHZ_CHANNEL) / FrequencyModel.CHANNELS_PER_KHZ);
+    public static float toFreq(float channel) {
+        return FrequencyModel.KHZ * (float) Math.pow(2, (channel- FrequencyModel.KHZ_CHANNEL) / FrequencyModel.CHANNELS_PER_KHZ);
     }
 
     public static int toChannel(float freq) {
@@ -27,9 +27,12 @@ public class FrequencyModel extends DefaultBoundedRangeModel {
 
     final Generator generator;
 
+    final BoundedRangeModel pitchModel = new DefaultBoundedRangeModel(-50, 0, -50, 50);
+
     public FrequencyModel(Generator generator) {
         super(toChannel(generator.frequency), 0, 0, NUM_CHANNELS);
         this.generator = generator;
+        this.pitchModel.addChangeListener(this::updateFrequency);
         addChangeListener(this::updateFrequency);
         generator.setFrequency(getFreq());
     }
@@ -43,10 +46,15 @@ public class FrequencyModel extends DefaultBoundedRangeModel {
     }
 
     public float getFreq() {
-        return toFreq(getChannel());
+        float channel = getChannel() + pitchModel.getValue()/100.0F;
+        return toFreq(channel);
     }
 
     private void updateFrequency(ChangeEvent ev) {
         generator.setFrequency(getFreq());
+    }
+
+    public String getPitchLabel() {
+        return String.format("%-2d ¢", pitchModel.getValue());
     }
 }

@@ -72,6 +72,7 @@ public class Generator implements Runnable {
 
     public void setFrequency(float frequency) {
         this.frequency = frequency;
+        LOGGER.log(LEVEL, () -> String.format("frequency: %.1fHz", frequency));
     }
 
     AudioPlayer player = AudioPlayer.open();

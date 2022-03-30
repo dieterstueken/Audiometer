@@ -61,8 +61,16 @@ public class Audiometer extends JPanel {
         gainLabel.setMinimumSize(new Dimension(100, 3));
         gainModel.addChangeListener(ev -> gainLabel.setText(gainModel.getLabel()));
 
+        JSlider pitchSlider = new JSlider(freqModel.pitchModel);
+        JLabel pitchLabel = new JLabel(freqModel.getPitchLabel(), SwingConstants.RIGHT);
+        pitchLabel.setPreferredSize(pitchLabel.getPreferredSize());
+        freqModel.pitchModel.addChangeListener(ev -> pitchLabel.setText(freqModel.getPitchLabel()));
+        pitchSlider.setValue(0);
+
         JSlider gainSlider = new JSlider(gainModel);
-        
+
+        gainPanel.add(pitchSlider);
+        gainPanel.add(pitchLabel);
         gainPanel.add(coupled);
         gainPanel.add(gainSlider);
         gainPanel.add(gainLabel);

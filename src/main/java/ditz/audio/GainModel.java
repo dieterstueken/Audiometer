@@ -37,6 +37,6 @@ public class GainModel extends DefaultBoundedRangeModel {
     int bias = 0;
 
     public String getLabel() {
-        return String.format("%d dB", getValue());
+        return String.format("%d dB", -1*getValue());
     }
 }
