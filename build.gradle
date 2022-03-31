@@ -6,10 +6,17 @@ version="1.0"
 dependencies {
 }
 
-idea.project {
-    jdkName = '11'
-    languageLevel = JavaVersion.VERSION_11
-    vcs = 'Git'
+idea {
+    project {
+        jdkName = '11'
+        languageLevel = JavaVersion.VERSION_11
+        vcs = 'Git'
+    }
+
+    module {
+        outputDir file('build/idea/main')
+        testOutputDir file('build/idea/test')
+    }
 }
 
 tasks.withType(JavaCompile) {

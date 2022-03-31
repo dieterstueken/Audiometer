@@ -2,8 +2,10 @@ package ditz.audio;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.function.Consumer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -77,6 +79,11 @@ class Audiogramm extends JPanel {
         return model.freqModel.getChannel();
     }
 
+    Audiogramm(AudioModel model, Consumer<ChangeListener> pitchChanged) {
+        this(model);
+        pitchChanged.accept(this::updateFreqLabel);
+    }
+
     Audiogramm(AudioModel model) {
         super(null);
 
@@ -112,7 +119,7 @@ class Audiogramm extends JPanel {
 
         freqLabel = new JLabel(getFreqLabel());
         freqLabel.setHorizontalAlignment(JLabel.RIGHT);
-        freqLabel.setBounds(IN.left+65, IN.top+height+30, 55, 15);
+        freqLabel.setBounds(IN.left+65, IN.top+height+30, 65, 15);
         model.freqModel.addChangeListener(this::updateFreqLabel);
         add(freqLabel);
 

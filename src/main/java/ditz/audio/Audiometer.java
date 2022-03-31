@@ -40,15 +40,21 @@ public class Audiometer extends JPanel {
                 Audiometer.this.handleError(error);
             }
         };
-
         FrequencyModel freqModel = new FrequencyModel(generator);
+
+        JSlider pitchSlider = new JSlider(freqModel.pitchModel);
+        JLabel pitchLabel = new JLabel(freqModel.getPitchLabel(), SwingConstants.RIGHT);
+        pitchLabel.setPreferredSize(pitchLabel.getPreferredSize());
+        freqModel.pitchModel.addChangeListener(ev -> pitchLabel.setText(freqModel.getPitchLabel()));
+        pitchSlider.setValue(0);
+
         left = new AudioModel(freqModel, gainModel, generator.left);
         right = new AudioModel(freqModel, gainModel, generator.right);
 
         audiograms = new JPanel(new BorderLayout());
-        audiograms.add(new Audiogramm(right), BorderLayout.LINE_START);
+        audiograms.add(new Audiogramm(right, pitchSlider::addChangeListener), BorderLayout.LINE_START);
         audiograms.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
-        audiograms.add(new Audiogramm(left), BorderLayout.LINE_END);
+        audiograms.add(new Audiogramm(left, pitchSlider::addChangeListener), BorderLayout.LINE_END);
 
         JPanel gainPanel = new JPanel();
 
@@ -61,11 +67,7 @@ public class Audiometer extends JPanel {
         gainLabel.setMinimumSize(new Dimension(100, 3));
         gainModel.addChangeListener(ev -> gainLabel.setText(gainModel.getLabel()));
 
-        JSlider pitchSlider = new JSlider(freqModel.pitchModel);
-        JLabel pitchLabel = new JLabel(freqModel.getPitchLabel(), SwingConstants.RIGHT);
-        pitchLabel.setPreferredSize(pitchLabel.getPreferredSize());
-        freqModel.pitchModel.addChangeListener(ev -> pitchLabel.setText(freqModel.getPitchLabel()));
-        pitchSlider.setValue(0);
+
 
         JSlider gainSlider = new JSlider(gainModel);
 
@@ -130,17 +132,24 @@ public class Audiometer extends JPanel {
         generator.start();
     }
 
-    private void load(ActionEvent actionEvent) {
+    private JFileChooser newFileChooser() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(file);
+        if(file==null)
+            chooser.setCurrentDirectory(new File("."));
+        else
+            chooser.setSelectedFile(file);
+        return chooser;
+    }
+
+    private void load(ActionEvent actionEvent) {
+        JFileChooser chooser = newFileChooser();
         int result = chooser.showOpenDialog(this);
         if(result==JFileChooser.APPROVE_OPTION)
             load(chooser.getSelectedFile());
     }
 
     private void save(ActionEvent actionEvent) {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(file);
+        JFileChooser chooser = newFileChooser();
         int result = chooser.showSaveDialog(this);
         if(result==JFileChooser.APPROVE_OPTION)
             save(chooser.getSelectedFile());
