@@ -8,8 +8,8 @@ dependencies {
 
 idea {
     project {
-        jdkName = '11'
-        languageLevel = JavaVersion.VERSION_11
+        jdkName = '17'
+        languageLevel = JavaVersion.VERSION_17
         vcs = 'Git'
     }
 
@@ -19,10 +19,10 @@ idea {
     }
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     // JVM command line parameters:     -Dorg.gradle.project.JavacPath=/data3/ORACLE_JDK/jdk1.8.0/bin/javac
 
     options.encoding = 'UTF-8'
-    sourceCompatibility = JavaVersion.VERSION_11;
-    targetCompatibility = JavaVersion.VERSION_11;
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
