@@ -95,12 +95,17 @@ public class Audiometer extends JPanel {
     }
 
     private JMenuItem exitItem(Window window) {
-        JMenuItem item = new JMenuItem("Exit");
-        item.addActionListener(ev-> {
-            window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
-        });
-        return item;
+        return new JMenuItem("Exit") {
+            private void closeWindow(ActionEvent ev) {
+                window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
+            }
+            {
+                addActionListener(this::closeWindow);
+            }
+        };
     }
+
+
 
     void open() {
         JFrame frame = new JFrame("Audiometer");
@@ -208,7 +213,7 @@ public class Audiometer extends JPanel {
         error.printStackTrace();
     }
 
-    public static void main(String args[]) {
+    public static void main(String ... args) {
 
         final Audiometer audiometer = new Audiometer();
 
