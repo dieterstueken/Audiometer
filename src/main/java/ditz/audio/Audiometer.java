@@ -52,9 +52,9 @@ public class Audiometer extends JPanel {
         right = new AudioModel(freqModel, gainModel, generator.right);
 
         audiograms = new JPanel(new BorderLayout());
-        audiograms.add(new Audiogramm(right, pitchSlider::addChangeListener), BorderLayout.LINE_START);
+        audiograms.add(new Audiogramm(left, pitchSlider::addChangeListener), BorderLayout.LINE_START);
         audiograms.add(Box.createRigidArea(new Dimension(10, 0)), BorderLayout.CENTER);
-        audiograms.add(new Audiogramm(left, pitchSlider::addChangeListener), BorderLayout.LINE_END);
+        audiograms.add(new Audiogramm(right, pitchSlider::addChangeListener), BorderLayout.LINE_END);
 
         JPanel gainPanel = new JPanel();
 
